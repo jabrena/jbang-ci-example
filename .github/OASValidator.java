@@ -67,12 +67,12 @@ public class OASValidator {
             return parameters;
         };
 
-        BiConsumer<String,String> validateOAS = (specPath, file) -> {
+        BiConsumer<String,String> validateOAS = (specPath2, file) -> {
             OpenAPIParser openApiParser = new OpenAPIParser();
             ParseOptions parseOptions = new ParseOptions();
             parseOptions.setResolve(true);
 
-            SwaggerParseResult parserResult = openApiParser.readLocation(specPath + "/" + file, null, parseOptions);
+            SwaggerParseResult parserResult = openApiParser.readLocation(specPath2 + "/" + file, null, parseOptions);
             io.swagger.v3.oas.models.OpenAPI swaggerOpenAPI = parserResult.getOpenAPI();
 
             org.eclipse.microprofile.openapi.models.OpenAPI openAPI = SwAdapter.toOpenAPI(swaggerOpenAPI);
