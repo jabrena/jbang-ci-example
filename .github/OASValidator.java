@@ -31,6 +31,9 @@ public class OASValidator {
     public static void main(String[] args) {
         System.out.println("Validating multiple OAS files");
 
+        String configFilePath = new File(System.getProperty("user.dir")).getParent();
+        System.out.println(configFilePath);
+
         //Configuration parameters
         Supplier<ValidatorParameters> createValidatorParameters = () -> {
             ValidatorParameters parameters = new ValidatorParameters();
@@ -59,9 +62,9 @@ public class OASValidator {
             ParseOptions parseOptions = new ParseOptions();
             parseOptions.setResolve(true);
 
-            String configFilePath = new File(System.getProperty("user.dir")).getParent();
+            String configFilePath3 = new File(System.getProperty("user.dir")).getParent();
 
-            SwaggerParseResult parserResult = openApiParser.readLocation(configFilePath + "/" + specPath + "/" + file, null, parseOptions);
+            SwaggerParseResult parserResult = openApiParser.readLocation(configFilePath3 + "/" + specPath + "/" + file, null, parseOptions);
             io.swagger.v3.oas.models.OpenAPI swaggerOpenAPI = parserResult.getOpenAPI();
 
             org.eclipse.microprofile.openapi.models.OpenAPI openAPI = SwAdapter.toOpenAPI(swaggerOpenAPI);
@@ -76,13 +79,10 @@ public class OASValidator {
             }
         };
 
-        Path currentRelativePath2 = Paths.get("");
-        String s2 = currentRelativePath2.toAbsolutePath().toString();
-
         //Process
         var specPath = args[0];
-        String configFilePath = new File(System.getProperty("user.dir")).getParent();
-        Stream.of(new File(configFilePath + "/" + specPath).listFiles())
+        String configFilePath2 = new File(System.getProperty("user.dir")).getParent();
+        Stream.of(new File(configFilePath2 + "/" + specPath).listFiles())
                 .filter(file -> !file.isDirectory())
                 .map(File::getName)
                 .peek(System.out::println)
