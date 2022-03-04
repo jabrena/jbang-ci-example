@@ -34,7 +34,7 @@ public class OASValidator {
             ValidatorParameters parameters = new ValidatorParameters();
             parameters.setValidateInfoLicense(true);
             parameters.setValidateInfoDescription(false);
-            parameters.setValidateInfoContact(true);
+            parameters.setValidateInfoContact(false);
             parameters.setValidateOperationOperationId(true);
             parameters.setValidateOperationDescription(false);
             parameters.setValidateOperationTag(true);
@@ -64,7 +64,7 @@ public class OASValidator {
             OpenApiSpecStyleValidator openApiSpecStyleValidator = new OpenApiSpecStyleValidator(openAPI);
 
             ValidatorParameters parameters = createValidatorParameters.get();
-            System.out.println(String.format("Validating with options: %s", parameters));
+            //System.out.println(String.format("Validating with options: %s", parameters));
             List<StyleError> result = openApiSpecStyleValidator.validate(parameters);
             if (!result.isEmpty()) {
                 result.stream().map(StyleError::toString).forEach(m -> System.out.println(String.format("\t%s", m)));
