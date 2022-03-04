@@ -34,15 +34,9 @@ public class OASValidator {
         System.out.println("Validating multiple OAS files");
 
         String configFilePath = new File(System.getProperty("user.dir")).getParent();
-        System.out.println(configFilePath);
 
         var repo = args[0];
         var specPath = args[1];
-
-        Files.list(new File(configFilePath + "/" + repo).toPath())
-                .forEach(path -> {
-                    System.out.println(path);
-                });
 
         //Configuration parameters
         Supplier<ValidatorParameters> createValidatorParameters = () -> {
