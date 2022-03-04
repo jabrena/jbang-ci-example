@@ -16,5 +16,7 @@ jobs:
       - name: script
         shell: bash
         run: |
+            git clone "https://github.com/jabrena/jbang-ci-example"
+            cd jbang-ci-example
             curl -Ls https://sh.jbang.dev | bash -s - app setup
             ~/.jbang/bin/jbang .github/OASValidator.java
