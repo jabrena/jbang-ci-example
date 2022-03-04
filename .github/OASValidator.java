@@ -35,8 +35,7 @@ public class OASValidator {
 
         String configFilePath = new File(System.getProperty("user.dir")).getParent();
         System.out.println(configFilePath);
-        Files.list(new File(configFilePath).toPath())
-                //.limit(10)
+        Files.list(new File(configFilePath + "/jbang-ci-example").toPath())
                 .forEach(path -> {
                     System.out.println(path);
                 });
