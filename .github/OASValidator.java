@@ -9,6 +9,8 @@
 //DEPS com.fasterxml.jackson.core:jackson-annotations:2.13.1
 
 import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.stream.Stream;
 import java.util.List;
 import java.util.function.BiConsumer;
@@ -28,6 +30,10 @@ public class OASValidator {
 
     public static void main(String[] args) {
         System.out.println("Validating multiple OAS files");
+
+        Path currentRelativePath = Paths.get("");
+        String s = currentRelativePath.toAbsolutePath().toString();
+        System.out.println("Current absolute path is: " + s);
 
         //Configuration parameters
         Supplier<ValidatorParameters> createValidatorParameters = () -> {
@@ -73,7 +79,7 @@ public class OASValidator {
         };
 
         //Process
-        var specPath = "../folder1/";
+        var specPath = args[0];
         Stream.of(new File(specPath).listFiles())
                 .filter(file -> !file.isDirectory())
                 .map(File::getName)
