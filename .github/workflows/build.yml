@@ -13,7 +13,7 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
-      - name: script
+      - name: OAS Validation
         shell: bash
         run: |
             curl -Ls https://sh.jbang.dev | bash -s - app setup
