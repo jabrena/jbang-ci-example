@@ -35,7 +35,11 @@ public class OASValidator {
 
         String configFilePath = new File(System.getProperty("user.dir")).getParent();
         System.out.println(configFilePath);
-        Files.list(new File(configFilePath + "/jbang-ci-example").toPath())
+
+        var repo = args[0];
+        var specPath = args[1];
+
+        Files.list(new File(configFilePath + "/" + repo).toPath())
                 .forEach(path -> {
                     System.out.println(path);
                 });
@@ -68,9 +72,7 @@ public class OASValidator {
             ParseOptions parseOptions = new ParseOptions();
             parseOptions.setResolve(true);
 
-            String configFilePath3 = new File(System.getProperty("user.dir")).getParent();
-
-            SwaggerParseResult parserResult = openApiParser.readLocation(configFilePath3 + "/" + specPath + "/" + file, null, parseOptions);
+            SwaggerParseResult parserResult = openApiParser.readLocation(specPath + "/" + file, null, parseOptions);
             io.swagger.v3.oas.models.OpenAPI swaggerOpenAPI = parserResult.getOpenAPI();
 
             org.eclipse.microprofile.openapi.models.OpenAPI openAPI = SwAdapter.toOpenAPI(swaggerOpenAPI);
@@ -86,12 +88,10 @@ public class OASValidator {
         };
 
         //Process
-        var specPath = args[0];
-        String configFilePath2 = new File(System.getProperty("user.dir")).getParent();
-        Stream.of(new File(configFilePath2 + "/" + specPath).listFiles())
+        Stream.of(new File(configFilePath + "/" + repo + "/" + specPath).listFiles())
                 .filter(file -> !file.isDirectory())
                 .map(File::getName)
                 .peek(System.out::println)
-                .forEach(file -> validateOAS.accept(specPath, file));
+                .forEach(file -> validateOAS.accept(configFilePath + "/" + repo + "/" + specPath, file));
     }
 }
