@@ -63,7 +63,10 @@ public class OASValidator {
             ParseOptions parseOptions = new ParseOptions();
             parseOptions.setResolve(true);
 
-            SwaggerParseResult parserResult = openApiParser.readLocation(specPath + file, null, parseOptions);
+            Path currentRelativePath2 = Paths.get("");
+            String s2 = currentRelativePath2.toAbsolutePath().toString();
+
+            SwaggerParseResult parserResult = openApiParser.readLocation(s2 + "/" + specPath + "/" + file, null, parseOptions);
             io.swagger.v3.oas.models.OpenAPI swaggerOpenAPI = parserResult.getOpenAPI();
 
             org.eclipse.microprofile.openapi.models.OpenAPI openAPI = SwAdapter.toOpenAPI(swaggerOpenAPI);
