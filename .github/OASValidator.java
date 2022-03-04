@@ -9,6 +9,8 @@
 //DEPS com.fasterxml.jackson.core:jackson-annotations:2.13.1
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.stream.Stream;
@@ -28,11 +30,16 @@ import io.swagger.v3.parser.core.models.SwaggerParseResult;
 
 public class OASValidator {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         System.out.println("Validating multiple OAS files");
 
         String configFilePath = new File(System.getProperty("user.dir")).getParent();
         System.out.println(configFilePath);
+        Files.list(new File(configFilePath).toPath())
+                //.limit(10)
+                .forEach(path -> {
+                    System.out.println(path);
+                });
 
         //Configuration parameters
         Supplier<ValidatorParameters> createValidatorParameters = () -> {
