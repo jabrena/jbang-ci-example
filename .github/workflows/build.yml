@@ -1,6 +1,6 @@
 name: Java CI
 
-on: [push]
+on: [ push ]
 
 jobs:
   build:
@@ -13,9 +13,8 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
-      - name: Report
-          if: always()
-          shell: bash
-          run: |
+      - name: script
+        shell: bash
+        run: |
             curl -Ls https://sh.jbang.dev | bash -s - app setup
-            ~/.jbang/bin/jbang .github/HelloWorld.java 
+            ~/.jbang/bin/jbang .github/HelloWorld.java
