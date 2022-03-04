@@ -14,7 +14,6 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
       - name: Report
-          if: always()
           shell: bash
           run: |
             curl -Ls https://sh.jbang.dev | bash -s - app setup
