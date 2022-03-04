@@ -79,10 +79,11 @@ public class OASValidator {
         };
 
         //Process
-        Stream.of(new File(configFilePath + "/" + repo + "/" + specPath).listFiles())
+        var path = configFilePath + "/" + repo + "/" + specPath;
+        Stream.of(new File(path).listFiles())
                 .filter(file -> !file.isDirectory())
                 .map(File::getName)
                 .peek(System.out::println)
-                .forEach(file -> validateOAS.accept(configFilePath + "/" + repo + "/" + specPath, file));
+                .forEach(file -> validateOAS.accept(path, file));
     }
 }
