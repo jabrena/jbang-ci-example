@@ -14,7 +14,7 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
       - name: script
-          shell: bash
-          run: |
+        shell: bash
+        run: |
             curl -Ls https://sh.jbang.dev | bash -s - app setup
             ~/.jbang/bin/jbang .github/HelloWorld.java
