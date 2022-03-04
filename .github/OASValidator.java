@@ -10,13 +10,10 @@
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.stream.Stream;
-import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
+import java.util.List;
 
 import org.openapitools.empoa.swagger.core.internal.SwAdapter;
 import org.openapitools.openapistylevalidator.OpenApiSpecStyleValidator;
