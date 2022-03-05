@@ -9,9 +9,8 @@
 //DEPS com.fasterxml.jackson.core:jackson-annotations:2.13.1
 
 import java.io.File;
-import java.io.IOException;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
-import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 import java.util.List;
 
@@ -27,63 +26,62 @@ import io.swagger.v3.parser.core.models.SwaggerParseResult;
 
 public class OASValidator {
 
-    public static void main(String[] args) throws IOException {
+    //Configuration parameters
+    Supplier<ValidatorParameters> createValidatorParameters = () -> {
+        ValidatorParameters parameters = new ValidatorParameters();
+        parameters.setValidateInfoLicense(true);
+        parameters.setValidateInfoDescription(false);
+        parameters.setValidateInfoContact(false);
+        parameters.setValidateOperationOperationId(true);
+        parameters.setValidateOperationDescription(false);
+        parameters.setValidateOperationTag(true);
+        parameters.setValidateOperationSummary(true);
+        parameters.setValidateModelPropertiesExample(false);
+        parameters.setValidateModelPropertiesDescription(false);
+        parameters.setValidateModelRequiredProperties(true);
+        parameters.setValidateModelNoLocalDef(true);
+        parameters.setValidateNaming(true);
+        parameters.setIgnoreHeaderXNaming(true);
+        parameters.setPathNamingConvention(ValidatorParameters.NamingConvention.HyphenCase);
+        parameters.setHeaderNamingConvention(ValidatorParameters.NamingConvention.CamelCase);
+        parameters.setParameterNamingConvention(ValidatorParameters.NamingConvention.CamelCase);
+        parameters.setPropertyNamingConvention(ValidatorParameters.NamingConvention.CamelCase);
+        return parameters;
+    };
+
+    Consumer<String> validate = (file) -> {
+        OpenAPIParser openApiParser = new OpenAPIParser();
+        ParseOptions parseOptions = new ParseOptions();
+        parseOptions.setResolve(true);
+
+        SwaggerParseResult parserResult = openApiParser.readLocation(file, null, parseOptions);
+        io.swagger.v3.oas.models.OpenAPI swaggerOpenAPI = parserResult.getOpenAPI();
+
+        org.eclipse.microprofile.openapi.models.OpenAPI openAPI = SwAdapter.toOpenAPI(swaggerOpenAPI);
+        OpenApiSpecStyleValidator openApiSpecStyleValidator = new OpenApiSpecStyleValidator(openAPI);
+
+        ValidatorParameters parameters = createValidatorParameters.get();
+        List<StyleError> result = openApiSpecStyleValidator.validate(parameters);
+        if (!result.isEmpty()) {
+            result.stream().map(StyleError::toString).forEach(m -> System.out.println(String.format("\t%s", m)));
+            throw new RuntimeException("OpenAPI Style validation failed");
+        }
+    };
+
+    public static void main(String[] args) {
         System.out.println("Validating multiple OAS files");
 
-        String configFilePath = new File(System.getProperty("user.dir")).getParent();
-
-        var repo = args[0];
-        var specPath = args[1];
-
-        //Configuration parameters
-        Supplier<ValidatorParameters> createValidatorParameters = () -> {
-            ValidatorParameters parameters = new ValidatorParameters();
-            parameters.setValidateInfoLicense(true);
-            parameters.setValidateInfoDescription(false);
-            parameters.setValidateInfoContact(false);
-            parameters.setValidateOperationOperationId(true);
-            parameters.setValidateOperationDescription(false);
-            parameters.setValidateOperationTag(true);
-            parameters.setValidateOperationSummary(true);
-            parameters.setValidateModelPropertiesExample(false);
-            parameters.setValidateModelPropertiesDescription(false);
-            parameters.setValidateModelRequiredProperties(true);
-            parameters.setValidateModelNoLocalDef(true);
-            parameters.setValidateNaming(true);
-            parameters.setIgnoreHeaderXNaming(true);
-            parameters.setPathNamingConvention(ValidatorParameters.NamingConvention.HyphenCase);
-            parameters.setHeaderNamingConvention(ValidatorParameters.NamingConvention.CamelCase);
-            parameters.setParameterNamingConvention(ValidatorParameters.NamingConvention.CamelCase);
-            parameters.setPropertyNamingConvention(ValidatorParameters.NamingConvention.CamelCase);
-            return parameters;
-        };
-
-        BiConsumer<String,String> validateOAS = (specPath2, file) -> {
-            OpenAPIParser openApiParser = new OpenAPIParser();
-            ParseOptions parseOptions = new ParseOptions();
-            parseOptions.setResolve(true);
-
-            SwaggerParseResult parserResult = openApiParser.readLocation(specPath2 + "/" + file, null, parseOptions);
-            io.swagger.v3.oas.models.OpenAPI swaggerOpenAPI = parserResult.getOpenAPI();
-
-            org.eclipse.microprofile.openapi.models.OpenAPI openAPI = SwAdapter.toOpenAPI(swaggerOpenAPI);
-            OpenApiSpecStyleValidator openApiSpecStyleValidator = new OpenApiSpecStyleValidator(openAPI);
-
-            ValidatorParameters parameters = createValidatorParameters.get();
-            //System.out.println(String.format("Validating with options: %s", parameters));
-            List<StyleError> result = openApiSpecStyleValidator.validate(parameters);
-            if (!result.isEmpty()) {
-                result.stream().map(StyleError::toString).forEach(m -> System.out.println(String.format("\t%s", m)));
-                throw new RuntimeException("OpenAPI Style validation failed");
-            }
-        };
-
         //Process
-        var path = configFilePath + "/" + repo + "/" + specPath;
+        var specFromRootRepo = args[0];
+        var configFilePath = new File(System.getProperty("user.dir")).getParent();
+        var path = configFilePath + "/" + specFromRootRepo;
+
+        OASValidator oasValidator = new OASValidator();
+
         Stream.of(new File(path).listFiles())
                 .filter(file -> !file.isDirectory())
-                .map(File::getName)
+                .map(File::getPath)
                 .peek(System.out::println)
-                .forEach(file -> validateOAS.accept(path, file));
+                .forEach(oasValidator.validate);
     }
 }
