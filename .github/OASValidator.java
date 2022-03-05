@@ -9,8 +9,10 @@
 //DEPS com.fasterxml.jackson.core:jackson-annotations:2.13.1
 
 import java.io.File;
-import java.util.function.Consumer;
-import java.util.stream.Stream;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.List;
 
@@ -23,6 +25,8 @@ import org.openapitools.openapistylevalidator.styleerror.StyleError;
 import io.swagger.parser.OpenAPIParser;
 import io.swagger.v3.parser.core.models.ParseOptions;
 import io.swagger.v3.parser.core.models.SwaggerParseResult;
+
+import static java.util.function.Predicate.not;
 
 public class OASValidator {
 
@@ -49,7 +53,9 @@ public class OASValidator {
         return parameters;
     };
 
-    Consumer<String> validate = (file) -> {
+    // OAS Validation process
+    // Original idea from: https://github.com/OpenAPITools/openapi-style-validator/tree/master/maven-plugin
+    Function<String, Integer> validate = (file) -> {
         OpenAPIParser openApiParser = new OpenAPIParser();
         ParseOptions parseOptions = new ParseOptions();
         parseOptions.setResolve(true);
@@ -64,12 +70,13 @@ public class OASValidator {
         List<StyleError> result = openApiSpecStyleValidator.validate(parameters);
         if (!result.isEmpty()) {
             result.stream().map(StyleError::toString).forEach(m -> System.out.println(String.format("\t%s", m)));
-            throw new RuntimeException("OpenAPI Style validation failed");
+            return 0;
         }
+        return 1;
     };
 
-    public static void main(String[] args) {
-        System.out.println("Validating multiple OAS files");
+    public static void main(String[] args) throws IOException {
+        System.out.println("Validating the following OAS files:");
 
         //Process
         var specFromRootRepo = args[0];
@@ -78,10 +85,22 @@ public class OASValidator {
 
         OASValidator oasValidator = new OASValidator();
 
-        Stream.of(new File(path).listFiles())
-                .filter(file -> !file.isDirectory())
-                .map(File::getPath)
+        var specCounter = Files.walk(Path.of(path))
+                .filter(not(Files::isDirectory))
+                .count();
+
+        var specValidatedCounter = Files.walk(Path.of(path))
+                .filter(not(Files::isDirectory))
+                .map(String::valueOf)
                 .peek(System.out::println)
-                .forEach(oasValidator.validate);
+                .map(oasValidator.validate)
+                .count();
+
+        //Assert
+        if(specCounter != specValidatedCounter) {
+            new RuntimeException("The validation process failed");
+        } else {
+            System.out.println("Every OAS files was validated successfully.");
+        }
     }
 }
