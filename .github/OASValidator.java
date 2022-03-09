@@ -10,11 +10,13 @@
 
 import java.io.File;
 import java.io.IOException;
+import java.io.FileReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.function.Function;
-import java.util.function.Supplier;
+import java.util.function.BiFunction;
 import java.util.List;
+import java.util.Properties;
 
 import org.openapitools.empoa.swagger.core.internal.SwAdapter;
 import org.openapitools.openapistylevalidator.OpenApiSpecStyleValidator;
@@ -31,31 +33,101 @@ import static java.util.function.Predicate.not;
 public class OASValidator {
 
     //Configuration parameters
-    Supplier<ValidatorParameters> createValidatorParameters = () -> {
-        ValidatorParameters parameters = new ValidatorParameters();
-        parameters.setValidateInfoLicense(true);
-        parameters.setValidateInfoDescription(false);
-        parameters.setValidateInfoContact(false);
-        parameters.setValidateOperationOperationId(true);
-        parameters.setValidateOperationDescription(false);
-        parameters.setValidateOperationTag(true);
-        parameters.setValidateOperationSummary(true);
-        parameters.setValidateModelPropertiesExample(false);
-        parameters.setValidateModelPropertiesDescription(false);
-        parameters.setValidateModelRequiredProperties(true);
-        parameters.setValidateModelNoLocalDef(true);
-        parameters.setValidateNaming(true);
-        parameters.setIgnoreHeaderXNaming(true);
-        parameters.setPathNamingConvention(ValidatorParameters.NamingConvention.HyphenCase);
-        parameters.setHeaderNamingConvention(ValidatorParameters.NamingConvention.CamelCase);
-        parameters.setParameterNamingConvention(ValidatorParameters.NamingConvention.CamelCase);
-        parameters.setPropertyNamingConvention(ValidatorParameters.NamingConvention.CamelCase);
-        return parameters;
+    //https://github.com/OpenAPITools/openapi-style-validator/blob/master/lib/src/main/java/org/openapitools/openapistylevalidator/ValidatorParameters.java
+    Function<String, ValidatorParameters> createValidatorParameters = (configPath) -> {
+
+        try {
+            FileReader reader = new FileReader(configPath);
+            Properties p = new Properties();
+            p.load(reader);
+
+            ValidatorParameters parameters = new ValidatorParameters();
+
+            //INfo
+            if(p.getProperty("validate.info.licence") != null) {
+                parameters.setValidateInfoLicense(Boolean.parseBoolean(p.getProperty("validate.info.licence")));
+            }
+
+            if(p.getProperty("validate.info.description") != null) {
+                parameters.setValidateInfoDescription(Boolean.parseBoolean(p.getProperty("validate.info.description")));
+            }
+
+            if(p.getProperty("validate.info.contact") != null) {
+                parameters.setValidateInfoContact(Boolean.parseBoolean(p.getProperty("validate.info.contact")));
+            }
+
+            //Operation
+            if(p.getProperty("validate.operation.operationid") != null) {
+                parameters.setValidateOperationOperationId(Boolean.parseBoolean(p.getProperty("validate.operation.operationid")));
+            }
+
+            if(p.getProperty("validate.operation.description") != null) {
+                parameters.setValidateOperationDescription(Boolean.parseBoolean(p.getProperty("validate.operation.description")));
+            }
+
+            if(p.getProperty("validate.operation.tag") != null) {
+                parameters.setValidateOperationTag(Boolean.parseBoolean(p.getProperty("validate.operation.tag")));
+            }
+
+            if(p.getProperty("validate.operation.summary") != null) {
+                parameters.setValidateOperationSummary(Boolean.parseBoolean(p.getProperty("validate.operation.summary")));
+            }
+
+            if(p.getProperty("validate.model.properties.example") != null) {
+                parameters.setValidateModelPropertiesExample(Boolean.parseBoolean(p.getProperty("validate.model.properties.example")));
+            }
+
+            if(p.getProperty("validate.model.properties.description") != null) {
+                parameters.setValidateModelPropertiesDescription(Boolean.parseBoolean(p.getProperty("validate.model.properties.description")));
+            }
+
+            if(p.getProperty("validate.model.properties.required") != null) {
+                parameters.setValidateModelRequiredProperties(Boolean.parseBoolean(p.getProperty("validate.model.properties.required")));
+            }
+
+            if(p.getProperty("validate.model.nolocaldef") != null) {
+                parameters.setValidateModelNoLocalDef(Boolean.parseBoolean(p.getProperty("validate.model.nolocaldef")));
+            }
+
+            //Naming
+            if(p.getProperty("validate.naming") != null) {
+                parameters.setValidateNaming(Boolean.parseBoolean(p.getProperty("validate.naming")));
+            }
+
+            if(p.getProperty("validate.naming.ignoreheaderx") != null) {
+                parameters.setIgnoreHeaderXNaming(Boolean.parseBoolean(p.getProperty("validate.naming.ignoreheaderx")));
+            }
+
+            if(p.getProperty("validate.naming.path.convention") != null) {
+                NamingConvention namingConvention = NamingConvention.valueOf(p.getProperty("validate.naming.path.convention"));
+                parameters.setPathNamingConvention(namingConvention);
+            }
+
+            if(p.getProperty("validate.naming.header.convention") != null) {
+                NamingConvention namingConvention = NamingConvention.valueOf(p.getProperty("validate.naming.header.convention"));
+                parameters.setHeaderNamingConvention(namingConvention);
+            }
+
+            if(p.getProperty("validate.naming.parameter.convention") != null) {
+                NamingConvention namingConvention = NamingConvention.valueOf(p.getProperty("validate.naming.parameter.convention"));
+                parameters.setParameterNamingConvention(namingConvention);
+            }
+
+            if(p.getProperty("validate.naming.property.convention") != null) {
+                NamingConvention namingConvention = NamingConvention.valueOf(p.getProperty("validate.naming.property.convention"));
+                parameters.setPropertyNamingConvention(namingConvention);
+            }
+
+            return parameters;
+
+        } catch (IOException e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
     };
 
     // OAS Validation process
     // Original idea from: https://github.com/OpenAPITools/openapi-style-validator/tree/master/maven-plugin
-    Function<String, Integer> validate = (file) -> {
+    BiFunction<ValidatorParameters, String, Integer> validate = (config, file) -> {
         OpenAPIParser openApiParser = new OpenAPIParser();
         ParseOptions parseOptions = new ParseOptions();
         parseOptions.setResolve(true);
@@ -66,7 +138,7 @@ public class OASValidator {
         org.eclipse.microprofile.openapi.models.OpenAPI openAPI = SwAdapter.toOpenAPI(swaggerOpenAPI);
         OpenApiSpecStyleValidator openApiSpecStyleValidator = new OpenApiSpecStyleValidator(openAPI);
 
-        ValidatorParameters parameters = createValidatorParameters.get();
+        ValidatorParameters parameters = config;
         List<StyleError> result = openApiSpecStyleValidator.validate(parameters);
         if (!result.isEmpty()) {
             result.stream().map(StyleError::toString).forEach(m -> System.out.println(String.format("\t%s", m)));
@@ -79,21 +151,24 @@ public class OASValidator {
         System.out.println("Validating the following OAS files:");
 
         //Process
-        var specFromRootRepo = args[0];
-        var configFilePath = new File(System.getProperty("user.dir")).getParent();
-        var path = configFilePath + "/" + specFromRootRepo;
+        var configName = args[0];
+        var specDir = args[1];
+        var userDirPath = new File(System.getProperty("user.dir"));
+        var specPath = userDirPath.getParent() + "/" + specDir;
+        var configPath = userDirPath + "/" + configName;
 
         OASValidator oasValidator = new OASValidator();
+        ValidatorParameters config = oasValidator.createValidatorParameters.apply(configPath);
 
-        var specCounter = Files.walk(Path.of(path))
+        var specCounter = Files.walk(Path.of(specPath))
                 .filter(not(Files::isDirectory))
                 .count();
 
-        var specValidatedCounter = Files.walk(Path.of(path))
+        var specValidatedCounter = Files.walk(Path.of(specPath))
                 .filter(not(Files::isDirectory))
                 .map(String::valueOf)
                 .peek(System.out::println)
-                .map(oasValidator.validate)
+                .map(spec -> oasValidator.validate.apply(config, spec))
                 .count();
 
         //Assert
