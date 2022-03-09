@@ -28,10 +28,6 @@ import io.swagger.parser.OpenAPIParser;
 import io.swagger.v3.parser.core.models.ParseOptions;
 import io.swagger.v3.parser.core.models.SwaggerParseResult;
 
-//import com.fasterxml.jackson.dataformat.yaml.snakeyaml.error.MarkedYAMLException;
-import com.fasterxml.jackson.core.JsonParseException;
-//import io.swagger.v3.parser.util.DeserializationUtils.SnakeException;
-
 import static java.util.function.Predicate.not;
 
 public class OASValidator {
