@@ -128,23 +128,30 @@ public class OASValidator {
     // OAS Validation process
     // Original idea from: https://github.com/OpenAPITools/openapi-style-validator/tree/master/maven-plugin
     BiFunction<ValidatorParameters, String, Integer> validate = (config, file) -> {
-        OpenAPIParser openApiParser = new OpenAPIParser();
-        ParseOptions parseOptions = new ParseOptions();
-        parseOptions.setResolve(true);
 
-        SwaggerParseResult parserResult = openApiParser.readLocation(file, null, parseOptions);
-        io.swagger.v3.oas.models.OpenAPI swaggerOpenAPI = parserResult.getOpenAPI();
+        try {
+            OpenAPIParser openApiParser = new OpenAPIParser();
+            ParseOptions parseOptions = new ParseOptions();
+            parseOptions.setResolve(true);
 
-        org.eclipse.microprofile.openapi.models.OpenAPI openAPI = SwAdapter.toOpenAPI(swaggerOpenAPI);
-        OpenApiSpecStyleValidator openApiSpecStyleValidator = new OpenApiSpecStyleValidator(openAPI);
+            SwaggerParseResult parserResult = openApiParser.readLocation(file, null, parseOptions);
+            io.swagger.v3.oas.models.OpenAPI swaggerOpenAPI = parserResult.getOpenAPI();
 
-        ValidatorParameters parameters = config;
-        List<StyleError> result = openApiSpecStyleValidator.validate(parameters);
-        if (!result.isEmpty()) {
-            result.stream().map(StyleError::toString).forEach(m -> System.out.println(String.format("\t%s", m)));
+            org.eclipse.microprofile.openapi.models.OpenAPI openAPI = SwAdapter.toOpenAPI(swaggerOpenAPI);
+            OpenApiSpecStyleValidator openApiSpecStyleValidator = new OpenApiSpecStyleValidator(openAPI);
+
+            ValidatorParameters parameters = config;
+            List<StyleError> result = openApiSpecStyleValidator.validate(parameters);
+            if (!result.isEmpty()) {
+                result.stream().map(StyleError::toString).forEach(m -> System.out.println(String.format("\t%s", m)));
+                return 0;
+            }
+            return 1;
+
+        } catch (RuntimeException e) {
+            System.out.println("Error in parsing process");
             return 0;
         }
-        return 1;
     };
 
     public static void main(String[] args) throws IOException {
@@ -169,10 +176,11 @@ public class OASValidator {
                 .map(String::valueOf)
                 .peek(System.out::println)
                 .map(spec -> oasValidator.validate.apply(config, spec))
-                .count();
+                .reduce(0, Integer::sum);
 
         //Assert
         if(specCounter != specValidatedCounter) {
+            System.out.println("Review the OAS files provided, the validation failed.");
             new RuntimeException("The validation process failed");
         } else {
             System.out.println("Every OAS files was validated successfully.");
