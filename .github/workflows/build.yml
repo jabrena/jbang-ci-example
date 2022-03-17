@@ -1,6 +1,6 @@
 name: Java CI
 
-on: [ push ]
+on: [ push, pull_request]
 
 jobs:
   build:
@@ -18,3 +18,11 @@ jobs:
         run: |
             curl -Ls https://sh.jbang.dev | bash -s - app setup
             ~/.jbang/bin/jbang .github/OASValidator.java .github/oasv-config.properties jbang-ci-example/folder1
+      - name: OAS YAML -> JSON Converter
+        shell: bash
+        run: |
+          curl -Ls https://sh.jbang.dev | bash -s - app setup
+          ~/.jbang/bin/jbang .github/OASConverter.java jbang-ci-example/folder2
+      - uses: stefanzweifel/git-auto-commit-action@v4.7.2
+        with:
+          commit_message: Regenerating OAS JSON files
