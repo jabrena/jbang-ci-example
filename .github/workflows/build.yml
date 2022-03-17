@@ -21,10 +21,10 @@ jobs:
             curl -Ls https://sh.jbang.dev | bash -s - app setup
             ~/.jbang/bin/jbang .github/OASValidator.java .github/oasv-config.properties jbang-ci-example/folder1
       - name: OAS Validation refactored
-          uses: jbangdev/jbang-action@v0.91.0
-          with:
-            script: .github/OASValidator.java
-            scriptargs: ".github/oasv-config.properties jbang-ci-example/folder1"
+        uses: jbangdev/jbang-action@v0.91.0
+        with:
+          script: .github/OASValidator.java
+          scriptargs: ".github/oasv-config.properties jbang-ci-example/folder1"
       - name: OAS YAML -> JSON Converter
         shell: bash
         run: |
