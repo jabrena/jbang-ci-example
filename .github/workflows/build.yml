@@ -24,7 +24,7 @@ jobs:
         shell: bash
         run: |
           curl -Ls https://sh.jbang.dev | bash -s - app setup
-          ~/.jbang/bin/jbang .github/OASConverter.java jbang-ci-example/folder2
+          ~/.jbang/bin/jbang .github/OASConverter.java jbang-ci-example/folder3
       - uses: stefanzweifel/git-auto-commit-action@v4.7.2
         with:
           commit_message: Regenerating OAS JSON files
