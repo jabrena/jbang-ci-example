@@ -1,6 +1,8 @@
 name: Java CI
 
-on: [ push, pull_request]
+on:
+  pull_request:
+    branches: main
 
 jobs:
   build:
@@ -26,3 +28,4 @@ jobs:
       - uses: stefanzweifel/git-auto-commit-action@v4.7.2
         with:
           commit_message: Regenerating OAS JSON files
+          branch: ${{ github.head_ref }}
